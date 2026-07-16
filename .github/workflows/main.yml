@@ -1,0 +1,39 @@
+name: CI
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+# Least-privilege by default; this workflow only needs to read the repo.
+permissions:
+  contents: read
+
+# Cancel superseded runs on the same ref (e.g. rapid pushes to a PR).
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        # Matches the Node version declared in package.json "engines" and .nvmrc.
+        node-version: [24.x]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+
+      # `npm ci` installs exactly from package-lock.json (reproducible, faster).
+      - run: npm ci
+
+      # Non-writing lint/format check — fails if code isn't already clean.
+      - run: npm run lint:ci
+
+      # `npm test` builds first, then runs `node --test`.
+      - run: npm test

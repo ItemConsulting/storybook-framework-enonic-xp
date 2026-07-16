@@ -1,0 +1,59 @@
+{
+  "name": "@itemconsulting/storybook-framework-enonic-xp",
+  "version": "0.1.0",
+  "description": "Storybook framework that renders Enonic XP FreeMarker/Thymeleaf templates server-side.",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "type": "module",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./preset": {
+      "types": "./dist/preset.d.ts",
+      "default": "./dist/preset.js"
+    },
+    "./package.json": "./package.json"
+  },
+  "scripts": {
+    "prebuild": "node -e \"require('fs').rmSync('dist',{recursive:true,force:true})\"",
+    "build": "tsc -p .",
+    "postbuild": "node scripts/finalize-dts.mjs",
+    "test": "npm run build && node --test test/*.mjs",
+    "lint": "biome check --write",
+    "lint:ci": "biome ci",
+    "prepublishOnly": "npm run build",
+    "release": "changeset publish",
+    "versioning": "npx changeset version && npm i --package-lock-only"
+  },
+  "files": [
+    "dist/**/*",
+    "README.md"
+  ],
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "author": "Tom Arild Jakobsen <tajakobsen@gmail.com>",
+  "license": "MIT",
+  "dependencies": {
+    "@storybook/builder-vite": "^10",
+    "@storybook/server": "^10"
+  },
+  "peerDependencies": {
+    "storybook": "^10",
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0"
+  },
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.5.3",
+    "@changesets/cli": "^2.31.0",
+    "@types/node": "^24.0.0",
+    "storybook": "^10",
+    "typescript": "^7.0.2",
+    "vite": "^7.0.0"
+  }
+}
