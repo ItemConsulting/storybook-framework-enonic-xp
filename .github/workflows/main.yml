@@ -23,7 +23,7 @@ jobs:
         # Matches the Node version declared in package.json "engines" and .nvmrc.
         node-version: [24.x]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
         with:
           node-version: ${{ matrix.node-version }}
