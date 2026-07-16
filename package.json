@@ -51,7 +51,7 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.3",
     "@changesets/cli": "^2.31.0",
-    "@types/node": "^24.0.0",
+    "@types/node": "^26.1.1",
     "storybook": "^10",
     "typescript": "^7.0.2",
     "vite": "^7.0.0"
