@@ -1,0 +1,47 @@
+name: Publish
+on:
+  push:
+    branches:
+      - main
+
+concurrency: ${{ github.workflow }}-${{ github.ref }}
+
+permissions:
+  contents: write # push the version-bump commit and git tags
+  pull-requests: write # open/update the "Version Packages" PR
+  id-token: write # npm Trusted Publishing auth + provenance via OIDC
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24.x
+          cache: "npm"
+          registry-url: "https://registry.npmjs.org"
+
+      # Trusted Publishing (OIDC) needs npm >= 11.5.1, newer than the npm bundled with Node.
+      - run: npm install -g npm@latest
+
+      - run: npm ci
+
+      # Gate the release on a clean, passing build.
+      - run: npm run lint:ci
+      - run: npm test
+
+      # On a normal push to main this opens/updates the "Version Packages" PR.
+      # When that PR is merged (changesets present), it publishes to npm and
+      # creates the matching GitHub Releases.
+      - name: Create Release Pull Request or Publish
+        id: changesets
+        uses: changesets/action@v1
+        with:
+          version: npm run versioning
+          publish: npm run release
+          createGithubReleases: true
+        env:
+          # npm auth is via OIDC Trusted Publishing (see permissions: id-token: write),
+          # so no NPM_TOKEN is needed. Provenance is attached automatically.
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
