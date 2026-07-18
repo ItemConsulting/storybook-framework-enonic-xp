@@ -14,6 +14,14 @@
       "types": "./dist/preset.d.ts",
       "default": "./dist/preset.js"
     },
+    "./vitest": {
+      "types": "./dist/vitest.d.ts",
+      "default": "./dist/vitest.js"
+    },
+    "./vitest-setup": {
+      "types": "./dist/vitest-setup.d.ts",
+      "default": "./dist/vitest-setup.js"
+    },
     "./package.json": "./package.json"
   },
   "scripts": {
@@ -42,8 +50,26 @@
     "@storybook/server": "^10"
   },
   "peerDependencies": {
+    "@storybook/addon-vitest": "^10",
+    "@vitest/browser-playwright": "^4",
+    "playwright": "^1",
     "storybook": "^10",
-    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0"
+    "vite": "^5.0.0 || ^6.0.0 || ^7.0.0 || ^8.0.0",
+    "vitest": "^4"
+  },
+  "peerDependenciesMeta": {
+    "@storybook/addon-vitest": {
+      "optional": true
+    },
+    "@vitest/browser-playwright": {
+      "optional": true
+    },
+    "playwright": {
+      "optional": true
+    },
+    "vitest": {
+      "optional": true
+    }
   },
   "engines": {
     "node": ">=24.0.0"
@@ -51,9 +77,12 @@
   "devDependencies": {
     "@biomejs/biome": "2.5.4",
     "@changesets/cli": "^2.31.1",
+    "@storybook/addon-vitest": "^10",
     "@types/node": "^24.0.0",
+    "@vitest/browser-playwright": "^4",
     "storybook": "^10",
     "typescript": "^7.0.2",
-    "vite": "^8.1.5"
+    "vite": "^8.1.5",
+    "vitest": "^4"
   }
 }
