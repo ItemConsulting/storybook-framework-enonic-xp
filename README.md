@@ -75,6 +75,9 @@ npm i -D @storybook/addon-vitest vitest @vitest/browser-playwright playwright
 npx playwright install chromium
 ```
 
+The `playwright install` step downloads the browser you run the stories in — swap `chromium` for
+`firefox` or `webkit` if you set a different `browser` in `defineXpStorybookProject()`.
+
 To use the **Coverage** feature from the Storybook test panel, also install `@vitest/coverage-v8`
 (matching your Vitest version):
 

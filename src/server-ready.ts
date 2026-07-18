@@ -14,9 +14,9 @@ export default async function setup(): Promise<void> {
   if (!url) return;
 
   try {
-    // Any HTTP response (even a 404) proves the server is reachable; only a network-level
-    // failure means it's down.
-    await fetch(url, { signal: AbortSignal.timeout(TIMEOUT_MS) });
+    // A HEAD request is enough — any HTTP response (even a 404) proves the server is reachable;
+    // only a network-level failure means it's down. The XP renderer on the other end handles HEAD.
+    await fetch(url, { method: "HEAD", signal: AbortSignal.timeout(TIMEOUT_MS) });
   } catch (cause) {
     throw new Error(
       [
