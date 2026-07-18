@@ -45,6 +45,14 @@
   },
   "author": "Tom Arild Jakobsen <tajakobsen@gmail.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ItemConsulting/storybook-framework-enonic-xp.git"
+  },
+  "homepage": "https://github.com/ItemConsulting/storybook-framework-enonic-xp#readme",
+  "bugs": {
+    "url": "https://github.com/ItemConsulting/storybook-framework-enonic-xp/issues"
+  },
   "dependencies": {
     "@storybook/builder-vite": "^10",
     "@storybook/server": "^10"
