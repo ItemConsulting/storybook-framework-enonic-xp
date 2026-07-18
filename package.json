@@ -1,6 +1,6 @@
 {
   "name": "@itemconsulting/storybook-framework-enonic-xp",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Storybook framework that renders Enonic XP FreeMarker/Thymeleaf templates server-side.",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
