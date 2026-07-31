@@ -1,5 +1,6 @@
 import { existsSync, readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { fileURLToPath } from "node:url";
 import { logger } from "storybook/internal/node-logger";
 import type { PresetProperty } from "storybook/internal/types";
 import type { InlineConfig } from "vite";
@@ -19,6 +20,20 @@ export const core: PresetProperty<"core"> = {
   builder: resolveModule("@storybook/builder-vite"),
   renderer: resolveModule("@storybook/server/preset"),
 };
+
+/**
+ * Add this framework's own preview annotations (see `preview.ts`), which make a non-2xx
+ * response from the XP server fail the story instead of rendering the error page as content.
+ *
+ * Listed before the incoming entries so the project's `preview.ts` still takes precedence.
+ * Unlike `core` above, these are consumed as filesystem paths rather than imported as ES
+ * modules, so a `file://` URL from `import.meta.resolve` has to be converted — Storybook
+ * treats a non-absolute entry as relative to the project root and would not find it.
+ */
+export const previewAnnotations: PresetProperty<"previewAnnotations"> = (entries = []) => [
+  fileURLToPath(resolveModule("./preview.js")),
+  ...entries,
+];
 
 /**
  * Inject the FreeMarker / Thymeleaf template plugin into Vite, and expose the same
