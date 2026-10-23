@@ -32,7 +32,6 @@ single story) — the project's own annotations take precedence over the framewo
 export default {
   parameters: {
     server: {
-      ...DEFAULT_XP_SERVER,
       fetchStoryHtml: async (url, path, params, storyContext) => {
         /* ... */
       },

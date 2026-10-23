@@ -25,14 +25,18 @@ export const core: PresetProperty<"core"> = {
  * Add this framework's own preview annotations (see `preview.ts`), which make a non-2xx
  * response from the XP server fail the story instead of rendering the error page as content.
  *
- * Listed before the incoming entries so the project's `preview.ts` still takes precedence.
+ * Listed after the incoming entries, which include the renderer's `@storybook/server/entry-preview`,
+ * so this framework's `renderToCanvas` replaces the renderer's: for a single-value annotation like
+ * that, the last one wins. The project's `preview.ts` is not one of these entries; the builder adds
+ * it after them, so it still takes precedence.
+ *
  * Unlike `core` above, these are consumed as filesystem paths rather than imported as ES
  * modules, so a `file://` URL from `import.meta.resolve` has to be converted — Storybook
  * treats a non-absolute entry as relative to the project root and would not find it.
  */
 export const previewAnnotations: PresetProperty<"previewAnnotations"> = (entries = []) => [
-  fileURLToPath(resolveModule("./preview.js")),
   ...entries,
+  fileURLToPath(resolveModule("./preview.js")),
 ];
 
 /**
@@ -41,7 +45,7 @@ export const previewAnnotations: PresetProperty<"previewAnnotations"> = (entries
  * `gradle.properties` at the project root).
  */
 export const viteFinal = async (config: InlineConfig): Promise<InlineConfig> => {
-  const { mergeConfig } = await import("vite");
+  const { mergeConfig, version } = await import("vite");
 
   logger.info("Enabling Freemarker template support for XP");
   logger.info("Enabling Thymeleaf template support for XP");
@@ -66,17 +70,17 @@ export const viteFinal = async (config: InlineConfig): Promise<InlineConfig> => 
     "process.env.APP_NAME": JSON.stringify(appName),
   };
 
+  // Vite 8 pre-bundles dependencies with Rolldown and warns that `esbuildOptions` is deprecated.
+  // Vite 5–7 still use esbuild.
+  const usesRolldown = Number.parseInt(version, 10) >= 8;
+
   return mergeConfig(config, {
     plugins: [enonicXP()],
-    // `define` covers app source. Dependencies (e.g. @itemconsulting/xp-storybook-utils, which reads
-    // `process.env.APP_NAME` in the browser) are pre-bundled in a separate esbuild pass that does
-    // NOT see `define`, so the same constants must also be passed to the optimizer — otherwise a
-    // bare `process` reference survives and throws `process is not defined` in the preview iframe.
+    // `define` covers app source. Dependencies (e.g. this package's own `preview.ts`, which reads
+    // `process.env.APP_NAME` in the browser) are pre-bundled in a separate pass that does NOT see
+    // `define`, so the same constants must also be passed to the optimizer — otherwise a bare
+    // `process` reference survives and throws `process is not defined` in the preview iframe.
     define,
-    optimizeDeps: {
-      esbuildOptions: {
-        define,
-      },
-    },
+    optimizeDeps: usesRolldown ? { rolldownOptions: { transform: { define } } } : { esbuildOptions: { define } },
   } satisfies InlineConfig);
 };

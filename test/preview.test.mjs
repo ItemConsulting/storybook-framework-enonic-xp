@@ -1,7 +1,7 @@
 import { strict as assert } from "node:assert";
 import { createServer } from "node:http";
 import test from "node:test";
-import { fetchStoryHtml, parameters } from "../dist/preview.js";
+import { CLIENT_SIDE_GLOBALS, fetchStoryHtml, parameters } from "../dist/preview.js";
 
 /** Start an HTTP server on an ephemeral port and resolve with its base URL + a stop fn. */
 function startServer(handler) {
@@ -67,6 +67,86 @@ test("sends the story id as the path, plus globals and params as query string", 
   } finally {
     await stop();
   }
+});
+
+test("sends object globals as JSON instead of [object Object]", async () => {
+  let requestUrl;
+  const { url, stop } = await startServer((req, res) => {
+    requestUrl = req.url;
+    res.end("ok");
+  });
+  try {
+    const globals = { theme: { value: "dark", contrast: false }, tags: ["a", "b"], highContrast: false, zoom: 2 };
+    await fetchStoryHtml(url, "s", {}, { globals });
+    const { searchParams } = new URL(requestUrl, url);
+    assert.deepEqual(JSON.parse(searchParams.get("theme")), { value: "dark", contrast: false });
+    assert.deepEqual(JSON.parse(searchParams.get("tags")), ["a", "b"]);
+    assert.equal(searchParams.get("highContrast"), "false");
+    assert.equal(searchParams.get("zoom"), "2");
+  } finally {
+    await stop();
+  }
+});
+
+test("leaves out globals and params that are undefined or null", async () => {
+  let requestUrl;
+  const { url, stop } = await startServer((req, res) => {
+    requestUrl = req.url;
+    res.end("ok");
+  });
+  try {
+    await fetchStoryHtml(url, "s", { text: undefined, title: "Hi" }, { globals: { vision: undefined, theme: null } });
+    assert.deepEqual([...new URL(requestUrl, url).searchParams.keys()], ["title"]);
+  } finally {
+    await stop();
+  }
+});
+
+test("does not send the globals of Storybook's client-side addons", async () => {
+  let requestUrl;
+  const { url, stop } = await startServer((req, res) => {
+    requestUrl = req.url;
+    res.end("ok");
+  });
+  try {
+    const globals = {
+      a11y: { manual: false },
+      backgrounds: { value: "dark" },
+      measureEnabled: false,
+      outline: false,
+      viewport: { value: "mobile1" },
+      vision: "blurred",
+      locale: "no",
+    };
+    await fetchStoryHtml(url, "s", {}, { globals });
+    assert.deepEqual([...new URL(requestUrl, url).searchParams.keys()], ["locale"]);
+  } finally {
+    await stop();
+  }
+});
+
+test("parameters.server.excludeGlobals replaces the list of globals that are not sent", async () => {
+  let requestUrl;
+  const { url, stop } = await startServer((req, res) => {
+    requestUrl = req.url;
+    res.end("ok");
+  });
+  try {
+    const context = {
+      globals: { backgrounds: { value: "dark" }, locale: "no" },
+      parameters: { server: { excludeGlobals: ["locale"] } },
+    };
+    await fetchStoryHtml(url, "s", {}, context);
+    assert.deepEqual([...new URL(requestUrl, url).searchParams.keys()], ["backgrounds"]);
+  } finally {
+    await stop();
+  }
+});
+
+test("exports the default list of client-side globals", () => {
+  assert.ok(CLIENT_SIDE_GLOBALS.includes("backgrounds"));
+  assert.ok(CLIENT_SIDE_GLOBALS.includes("viewport"));
+  assert.ok(CLIENT_SIDE_GLOBALS.includes("a11y"));
 });
 
 test("params override globals of the same name, as in the renderer's default", async () => {
