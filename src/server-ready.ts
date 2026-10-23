@@ -5,7 +5,8 @@
 // pings the server once up front and fails with an actionable message instead.
 //
 // The URL comes from `XP_STORYBOOK_SERVER_URL`, which `defineXpStorybookProject` sets from its
-// `serverUrl` option. Without it, the guard is a no-op.
+// `serverUrl` option (the framework's default server unless overridden). Without it, the guard is
+// a no-op.
 
 const TIMEOUT_MS = 5000;
 
@@ -25,7 +26,8 @@ export default async function setup(): Promise<void> {
         "@storybook/addon-vitest renders @storybook/server stories by fetching their HTML from",
         "this server, so it must be running while the tests execute. Start your XP dev server",
         "(e.g. `enonic project dev`) and make sure it responds at the URL above, then re-run the",
-        "tests. Set `serverUrl` in defineXpStorybookProject() if it lives elsewhere.",
+        "tests. If you changed `parameters.server.url` in preview.ts, pass the same URL as",
+        "`serverUrl` to defineXpStorybookProject().",
       ].join("\n"),
       { cause },
     );

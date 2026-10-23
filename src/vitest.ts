@@ -2,6 +2,7 @@ import { fileURLToPath } from "node:url";
 import { storybookTest } from "@storybook/addon-vitest/vitest-plugin";
 import { playwright } from "@vitest/browser-playwright";
 import type { TestProjectInlineConfiguration } from "vitest/config";
+import { DEFAULT_XP_SERVER_URL } from "./preview.js";
 
 export type XpStorybookProjectOptions = {
   /**
@@ -22,11 +23,14 @@ export type XpStorybookProjectOptions = {
    */
   storybookUrl?: string;
   /**
-   * URL of the running Enonic XP server that renders the templates. The `@storybook/server`
-   * renderer fetches each story's HTML from here, so the server must be up while the tests run.
+   * URL of the running Enonic XP server that renders the templates. A global setup step pings it
+   * before the run and fails with a clear message if it's unreachable — the most common cause of a
+   * failing run.
    *
-   * When provided (and `checkServer` isn't `false`), a global setup step pings it first and
-   * fails with a clear message if it's unreachable — the most common cause of a failing run.
+   * Only used for that check: the stories fetch their HTML from `parameters.server.url`. Set this
+   * only if you changed that in `preview.ts`, to the same URL.
+   *
+   * @default "http://localhost:8080/api/no.item.storybook:preview"
    */
   serverUrl?: string;
   /**
@@ -42,8 +46,7 @@ export type XpStorybookProjectOptions = {
    */
   headless?: boolean;
   /**
-   * Ping `serverUrl` before the run and fail fast if the XP server is down. No effect without
-   * `serverUrl`.
+   * Ping `serverUrl` before the run and fail fast if the XP server is down.
    *
    * @default true
    */
@@ -54,7 +57,7 @@ export type XpStorybookProjectOptions = {
  * Build the Vitest project that runs your Storybook stories through `@storybook/addon-vitest`.
  *
  * Because stories use the `@storybook/server` renderer, each one renders by fetching its HTML
- * from a running XP server (`serverUrl`) — these are server-integration tests, not isolated
+ * from a running XP server — these are server-integration tests, not isolated
  * component tests. The framework's Vite plugins (FreeMarker/Thymeleaf transform, `process.env.*`
  * defines) are applied automatically: `storybookTest` reuses this framework's `viteFinal`.
  *
@@ -63,15 +66,11 @@ export type XpStorybookProjectOptions = {
  *   import { defineConfig } from "vitest/config";
  *   import { defineXpStorybookProject } from "@itemconsulting/storybook-framework-enonic-xp/vitest";
  *
- *   export default defineConfig({
+ *   export default defineConfig(async () => ({
  *     test: {
- *       projects: [
- *         await defineXpStorybookProject({
- *           serverUrl: "http://localhost:8080/api/no.item.storybook:preview",
- *         }),
- *       ],
+ *       projects: [await defineXpStorybookProject()],
  *     },
- *   });
+ *   }));
  */
 export async function defineXpStorybookProject(
   options: XpStorybookProjectOptions = {},
@@ -80,14 +79,14 @@ export async function defineXpStorybookProject(
     configDir = ".storybook",
     storybookScript,
     storybookUrl,
-    serverUrl,
+    serverUrl = DEFAULT_XP_SERVER_URL,
     browser = "chromium",
     headless = true,
     checkServer = true,
   } = options;
 
   const globalSetup: string[] = [];
-  if (serverUrl && checkServer) {
+  if (checkServer) {
     // The guard runs in Vitest's node process, which also evaluated this config, so an env var
     // set here reaches it. It's the simplest channel — `globalSetup` entries are file paths, not
     // closures, so the URL can't be passed as an argument.

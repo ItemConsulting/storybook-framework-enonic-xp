@@ -9,6 +9,32 @@ support for FreeMarker (`.ftl`, `.ftlh`, `.ftlx`) and Thymeleaf (`.html`) templa
 
 ## Usage
 
+### Set up a project
+
+Run this in the root of your Enonic XP project:
+
+```bash
+npx @itemconsulting/storybook-framework-enonic-xp@latest init
+```
+
+It sets up the same configuration as described in the rest of this README:
+
+- *.storybook/main.ts* with this framework and the docs, a11y, links and Vitest addons, and
+  *src/main/resources/assets* as a static directory when it exists.
+- *.storybook/tsconfig.json*, with the types for `*.ftl` and `*.html` imports.
+- *vitest.config.ts*, to [run the stories as tests](#testing-stories-with-storybookaddon-vitest).
+- The `storybook` and `build-storybook` scripts in *package.json*, and the Storybook output in
+  *.gitignore*.
+- The dependencies, installed with the package manager your lockfile belongs to, and Chromium for
+  the tests.
+
+It does not create a *preview.ts*, as the framework works without one. Existing files are never
+overwritten. It stops without changing anything if *gradle.properties* has no `appName` (see
+[Requirements](#requirements)). Pass `--skip-tests` to leave out the Vitest setup, or `--skip-install` to only write the
+files and print the install command.
+
+### Manual setup
+
 Install the package and its peer dependencies in your project.
 
 ```bash
@@ -509,7 +535,7 @@ const config: StorybookConfig = {
 
 Create a *vitest.config.ts* using the helper this framework ships. It reuses the framework's Vite
 setup (FreeMarker/Thymeleaf transform and `process.env.*` defines), configures Playwright browser
-mode, and — when you pass `serverUrl` — fails fast with a clear message if the XP server is down:
+mode, and fails fast with a clear message if the XP server is down:
 
 ```typescript
 import { defineConfig } from "vitest/config";
@@ -518,15 +544,15 @@ import { defineXpStorybookProject } from "@itemconsulting/storybook-framework-en
 // The async callback form works whether or not your project is ESM (`"type": "module"`).
 export default defineConfig(async () => ({
   test: {
-    projects: [
-      await defineXpStorybookProject({
-        configDir: ".storybook",
-        serverUrl: "http://localhost:8080/api/no.item.storybook:preview",
-      }),
-    ],
+    projects: [await defineXpStorybookProject()],
   },
 }));
 ```
+
+The server check pings `http://localhost:8080/api/no.item.storybook:preview`, the framework's
+default. If you point `parameters.server.url` in *preview.ts* elsewhere, pass the same URL as
+`serverUrl`, or turn the check off with `checkServer: false`. `configDir` defaults to
+`".storybook"`.
 
 That's all that's required: `@storybook/addon-vitest` injects the story annotations automatically
 (built from your *preview.ts* and this framework's server-renderer annotations). If you need extra
