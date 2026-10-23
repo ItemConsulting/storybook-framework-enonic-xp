@@ -36,12 +36,11 @@ jobs:
       # creates the matching GitHub Releases.
       - name: Create Release Pull Request or Publish
         id: changesets
-        uses: changesets/action@v1
+        # npm auth is via OIDC Trusted Publishing (see permissions: id-token: write),
+        # so no NPM_TOKEN is needed. Provenance is attached automatically. GitHub auth
+        # uses the action's `github-token` input, which defaults to the workflow token.
+        uses: changesets/action@v2
         with:
-          version: npm run versioning
-          publish: npm run release
-          createGithubReleases: true
-        env:
-          # npm auth is via OIDC Trusted Publishing (see permissions: id-token: write),
-          # so no NPM_TOKEN is needed. Provenance is attached automatically.
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          version-script: npm run versioning
+          publish-script: npm run release
+          create-github-releases: true

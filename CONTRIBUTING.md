@@ -85,6 +85,27 @@ Merging that PR triggers the Publish workflow again, which this time:
 That's the whole release: **add a changeset → merge → merge the Version
 Packages PR.**
 
+### Beta releases
+
+While `.changeset/pre.json` exists, the repository is in Changesets'
+[prerelease mode](https://github.com/changesets/changesets/blob/main/docs/prereleases.md)
+with the `beta` tag. The flow above is unchanged, but the Version Packages PR
+bumps to a prerelease version (`1.0.0-beta.0`, then `1.0.0-beta.1`, …), and
+the package is published to the `beta` npm dist-tag instead of `latest`, so
+`npm i @itemconsulting/storybook-framework-enonic-xp` keeps installing the last
+stable version. Install a beta with
+`npm i @itemconsulting/storybook-framework-enonic-xp@beta`.
+
+To release the stable version, leave prerelease mode and commit the change to
+`.changeset/pre.json`:
+
+```bash
+npx changeset pre exit
+```
+
+The next Version Packages PR then bumps to the stable version (`1.0.0`) and
+publishes it to `latest`.
+
 ### Maintainer setup (one-time)
 
 For publishing to work, the repository must have an `NPM_TOKEN` secret with
