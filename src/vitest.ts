@@ -67,7 +67,7 @@ export type XpStorybookProjectOptions = {
  *     test: {
  *       projects: [
  *         await defineXpStorybookProject({
- *           serverUrl: "http://localhost:8080/webapp/no.item.storybook",
+ *           serverUrl: "http://localhost:8080/api/no.item.storybook:preview",
  *         }),
  *       ],
  *     },

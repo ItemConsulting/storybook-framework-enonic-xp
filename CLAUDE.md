@@ -19,7 +19,7 @@ stays readable on one line:
 ```
 The XP server returned 500 Server Error when rendering story "site/parts/arrangement/arrangement.ftlh".
 Response: FreeMarker template error ... The following has evaluated to null or missing: ==> isAdministrationSite2 [in template "site/parts/arrangement/arrangement.ftlh" at line 14, column 17] ...
-Request: http://localhost:8080/webapp/no.item.storybook/site/parts/arrangement/arrangement.ftlh (19 query parameters)
+Request: http://localhost:8080/api/no.item.storybook:preview/site/parts/arrangement/arrangement.ftlh (19 query parameters)
 ```
 
 The query string is omitted from the reported URL, since serialized story args would otherwise

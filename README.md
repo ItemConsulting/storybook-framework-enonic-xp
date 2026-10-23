@@ -31,6 +31,43 @@ const config: StorybookConfig = {
 export default config;
 ```
 
+### Requirements
+
+Templates are rendered by the [xp-storybook](https://github.com/ItemConsulting/xp-storybook)
+application, which reads them out of an **installed** Enonic XP application. Two things follow:
+
+- *gradle.properties* must set `appName`. The framework reads it and tells the server which
+  application to render from; Storybook refuses to start without it.
+- The application has to be deployed to your sandbox, and deployed **in dev mode** if you want an
+  edited template to show up without a rebuild. Use `enonic project dev`, which deploys and then
+  keeps rebuilding as you work. A plain `enonic project deploy` installs the application without its
+  source paths, so templates are served from the jar and edits do not appear; xp-storybook logs a
+  warning when it sees this. (`-Penv=dev` cannot be passed through the CLI — see the xp-storybook
+  README for the alternatives.)
+
+| xp-storybook | this package | `@itemconsulting/xp-storybook-utils` |
+| ------------ | ------------ | ------------------------------------ |
+| 3.x          | 1.x          | 1.x                                  |
+| 2.x          | 0.2.x        | 0.3.x                                |
+
+### XP libraries
+
+An XP library is not an application, so there is nothing for `xpAppName` to name. Point Storybook at
+an application that `include`s the library, and add the library's resources to that application's
+dev source paths so that edits to them are served from disk too:
+
+```groovy
+app {
+  // Absolute, and added to rawDevSourcePaths so the app keeps its own source paths too.
+  rawDevSourcePaths.add(file("../lib-xp-forms/src/main/resources").canonicalPath)
+}
+```
+
+Then run Storybook from that application's project, with its `appName` in *gradle.properties*. Note
+`rawDevSourcePaths` rather than `devSourcePaths`, and an absolute path — the
+[xp-storybook README](https://github.com/ItemConsulting/xp-storybook#libraries) explains why both
+matter.
+
 ## Typing template imports
 
 In a story you import a template to get its id, which the framework resolves to the template's
@@ -108,7 +145,7 @@ export default defineConfig(async () => ({
     projects: [
       await defineXpStorybookProject({
         configDir: ".storybook",
-        serverUrl: "http://localhost:8080/webapp/no.item.storybook",
+        serverUrl: "http://localhost:8080/api/no.item.storybook:preview",
       }),
     ],
   },

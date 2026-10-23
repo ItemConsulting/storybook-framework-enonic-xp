@@ -49,18 +49,29 @@ export const viteFinal = async (config: InlineConfig): Promise<InlineConfig> => 
   const propertiesPath = resolve("gradle.properties");
   const fileContent = existsSync(propertiesPath) ? readFileSync(propertiesPath, "utf-8") : "";
 
+  const appName = getGradleProperty("appName", fileContent);
+
+  if (!appName) {
+    throw new Error(
+      `Could not read "appName" from ${propertiesPath}.\n\n` +
+        `The Enonic XP storybook app renders templates out of an installed application, so the preview has to ` +
+        `know which one. Add it to gradle.properties, e.g.\n\n` +
+        `    appName = com.example.myapp\n\n` +
+        `An XP library has no application of its own: point Storybook at an application that includes the library, ` +
+        `and add the library's resources to that application's devSourcePaths. See the README.`,
+    );
+  }
+
   const define = {
-    "process.env.RESOURCES_DIR": JSON.stringify(resolve("src/main/resources")),
-    "process.env.APP_NAME": JSON.stringify(getGradleProperty("appName", fileContent) ?? ""),
+    "process.env.APP_NAME": JSON.stringify(appName),
   };
 
   return mergeConfig(config, {
     plugins: [enonicXP()],
-    // `define` covers app source. Dependencies (e.g. @itemconsulting/xp-storybook-utils,
-    // which reads `process.env.RESOURCES_DIR` / `process.env.APP_NAME` in the browser) are
-    // pre-bundled in a separate esbuild pass that does NOT see `define`, so the same
-    // constants must also be passed to the optimizer — otherwise a bare `process` reference
-    // survives and throws `process is not defined` in the preview iframe.
+    // `define` covers app source. Dependencies (e.g. @itemconsulting/xp-storybook-utils, which reads
+    // `process.env.APP_NAME` in the browser) are pre-bundled in a separate esbuild pass that does
+    // NOT see `define`, so the same constants must also be passed to the optimizer — otherwise a
+    // bare `process` reference survives and throws `process is not defined` in the preview iframe.
     define,
     optimizeDeps: {
       esbuildOptions: {
